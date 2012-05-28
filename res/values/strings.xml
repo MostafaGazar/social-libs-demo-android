@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, SocialShareDemoActivity!</string>
+    <string name="app_name">Integrate Social Libs Demo</string>
+    <string name="message_hint">Message</string>
+    <string name="intent_share">Share</string>
+    <string name="twitter_status_updated">Twitter status updated</string>
+    <string name="facebook_wall_updated">Facebook wall updated</string>
+
+</resources>
