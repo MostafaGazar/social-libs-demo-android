@@ -1,1 +1,1 @@
-Demo to simple sharing via Facebook and Twitter native APIs.
+Demo to simple sharing via Facebook (using dialog and graph APIs) and Twitter native APIs (consistent look).
