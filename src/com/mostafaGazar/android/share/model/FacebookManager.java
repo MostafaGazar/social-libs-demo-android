@@ -1,11 +1,12 @@
-/**
- * Apr 11, 2012
- */
 package com.mostafaGazar.android.share.model;
 
-import android.app.Activity;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,14 +14,13 @@ import com.facebook.android.AsyncFacebookRunner;
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.FacebookError;
+import com.facebook.android.AsyncFacebookRunner.RequestListener;
 import com.facebook.android.Facebook.DialogListener;
 import com.mostafaGazar.android.share.R;
-import com.mostafaGazar.android.share.listener.BaseDialogListener;
-import com.mostafaGazar.android.share.listener.BaseRequestListener;
-import com.mostafaGazar.android.share.model.SessionEvents.AuthListener;
-import com.mostafaGazar.android.share.model.SessionEvents.LogoutListener;
-import com.mostafaGazar.android.share.modelView.IFacebookManagerCaller;
-import com.mostafaGazar.android.share.util.Constants;
+import com.mostafaGazar.android.share.interfaces.IFacebookManagerCaller;
+import com.mostafaGazar.android.share.model.FacebookSessionEvents.AuthListener;
+import com.mostafaGazar.android.share.model.FacebookSessionEvents.LogoutListener;
+import com.mostafaGazar.android.share.util.Constants.FacebookConstants;
 
 /**
  * @author Mostafa Gazar
@@ -29,23 +29,23 @@ public class FacebookManager {
 	private static final String TAG = FacebookManager.class.getSimpleName();
 	
 	public static Facebook mFacebook;
-    private static AsyncFacebookRunner mAsyncRunner;
-//    private Handler mHandler;
 	
 	private IFacebookManagerCaller mFacebookManagerCaller;
 	private Context mContext;
+	
+	private Handler mHandler;
 	
 	public FacebookManager(IFacebookManagerCaller facebookManagerCaller) {
 		mFacebookManagerCaller = facebookManagerCaller;
 		mContext = facebookManagerCaller.getContext();
 		
-		mFacebook = new Facebook(Constants.FACEBOOK_APP_ID);
-       	mAsyncRunner = new AsyncFacebookRunner(mFacebook);
-//       	mHandler = new Handler();
+		mFacebook = new Facebook(FacebookConstants.APP_ID);
+		mFacebook.setAccessToken(FacebookConstants.ACCESS_TOKEN);
+       	mHandler = new Handler();
 
-        SessionStore.restore(mFacebook, mContext);
-        SessionEvents.addAuthListener(new SampleAuthListener());
-        SessionEvents.addLogoutListener(new SampleLogoutListener());
+        FacebookSessionStore.restore(mFacebook, mContext);
+        FacebookSessionEvents.addAuthListener(new AuthListenerImp());
+        FacebookSessionEvents.addLogoutListener(new LogoutListenerImp());
 	}
 	
 	public boolean isLogin() {
@@ -57,94 +57,131 @@ public class FacebookManager {
 	}
 	public void login(String[] permissions) {
 		if (mFacebook.isSessionValid()) {
-//            SessionEvents.onLogoutBegin();
-//            AsyncFacebookRunner asyncRunner = new AsyncFacebookRunner(mFacebook);
-//            asyncRunner.logout(mContext, new LogoutRequestListener());
-        } else {
-        	mFacebook.authorize((Activity) mFacebookManagerCaller, permissions,
+			// Do nothing.
+		} else {
+        	mFacebook.authorize(mFacebookManagerCaller.getParentActivity(), permissions,
                           new LoginDialogListener());
         }
 	}
 	
-	public void post() {
-		mFacebookManagerCaller.dialog(new SampleDialogListener());
+	public void post(String message) {
+		Bundle params = new Bundle();
+        params.putString("message", message);
+
+        // Uses the Facebook Graph API
+        try {
+            mFacebook.request("/me/feed", params, "POST");
+        } catch (Exception e) {
+        	mFacebookManagerCaller.makeText(R.string.facebook_status_update_failed, Toast.LENGTH_SHORT);
+            Log.e(TAG, e.toString());
+        }
 	}
 	
 	public void logout() {
-		try {
-			mFacebook.logout(mContext);
-		} catch (Exception e) {
-			Log.e(TAG, e.toString());
-		}
+		FacebookSessionEvents.onLogoutBegin();
+		AsyncFacebookRunner asyncRunner = new AsyncFacebookRunner(mFacebook);
+		asyncRunner.logout(mContext, new LogoutRequestListener());
 	}
-			
+	
 	private final class LoginDialogListener implements DialogListener {
         public void onComplete(Bundle values) {
-            SessionEvents.onLoginSuccess();
+            FacebookSessionEvents.onLoginSuccess();
         }
 
         public void onFacebookError(FacebookError error) {
-            SessionEvents.onLoginError(error.getMessage());
+            FacebookSessionEvents.onLoginError(error.getMessage());
         }
         
         public void onError(DialogError error) {
-            SessionEvents.onLoginError(error.getMessage());
+            FacebookSessionEvents.onLoginError(error.getMessage());
         }
 
         public void onCancel() {
-            SessionEvents.onLoginError("Action Canceled");
+            FacebookSessionEvents.onLoginError("Action Canceled");
         }
     }
-    
-//    private class LogoutRequestListener extends BaseRequestListener {
-//        public void onComplete(String response, final Object state) {
-//            // callback should be run in the original thread, 
-//            // not the background thread
-//            mHandler.post(new Runnable() {
-//                public void run() {
-//                    SessionEvents.onLogoutFinish();
-//                }
-//            });
-//        }
-//    }
 	
-	private class SampleAuthListener implements AuthListener {
+	private class LogoutRequestListener extends BaseRequestListener {
+		public void onComplete(String response, final Object state) {
+			// callback should be run in the original thread,
+			// not the background thread
+			mHandler.post(new Runnable() {
+				public void run() {
+					FacebookSessionEvents.onLogoutFinish();
+				}
+			});
+		}
+	}
+	
+	private class AuthListenerImp implements AuthListener {
         public void onAuthSucceed() {
-        	Toast.makeText(mContext, "You have logged in!", Toast.LENGTH_LONG).show();
-        	SessionStore.save(mFacebook, mContext);
+        	FacebookSessionStore.save(mFacebook, mContext);
+        	
+        	mFacebookManagerCaller.makeText(R.string.facebook_login_succesful, Toast.LENGTH_SHORT);
         }
 
         public void onAuthFail(String error) {
-        	Toast.makeText(mContext, "Login Failed: " + error, Toast.LENGTH_LONG).show();
+        	mFacebookManagerCaller.makeText(R.string.facebook_login_failed, Toast.LENGTH_SHORT);
         }
     }
 
-    private class SampleLogoutListener implements LogoutListener {
+    private class LogoutListenerImp implements LogoutListener {
         public void onLogoutBegin() {
-        	Toast.makeText(mContext, "Logging out...", Toast.LENGTH_LONG).show();
+        	// mFacebookManagerCaller.makeText("Logging out...", Toast.LENGTH_SHORT);
+        	mFacebookManagerCaller.showProgressBar(true);
         }
 
         public void onLogoutFinish() {
-        	Toast.makeText(mContext, "You have logged out!", Toast.LENGTH_LONG).show();
-        	SessionStore.clear(mContext);
+        	FacebookSessionStore.clear(mContext);
+        	
+        	mFacebookManagerCaller.showProgressBar(false);
+        	mFacebookManagerCaller.makeText(R.string.facebook_logout_succesful, Toast.LENGTH_SHORT);
         }
     }
     
-    private class WallPostRequestListener extends BaseRequestListener {
-        public void onComplete(final String response, final Object state) {
-            Toast.makeText(mContext, R.string.facebook_wall_updated, Toast.LENGTH_LONG).show();
+    /**
+     * Skeleton base class for RequestListeners, providing default error 
+     * handling. Applications should handle these error conditions.
+     *
+     */
+    public abstract class BaseDialogListener implements DialogListener {
+        public void onFacebookError(FacebookError e) {
+            e.printStackTrace();
+        }
+
+        public void onError(DialogError e) {
+            e.printStackTrace();        
+        }
+
+        public void onCancel() {        
         }
     }
     
-    public class SampleDialogListener extends BaseDialogListener {
-        public void onComplete(Bundle values) {
-            final String postId = values.getString("post_id");
-            if (postId != null) {
-                Log.d("Facebook-Example", "Dialog Success! post_id=" + postId);
-                mAsyncRunner.request(postId, new WallPostRequestListener());
-            } else {
-                Log.d("Facebook-Example", "No wall post made");
-            }
+    /**
+     * Skeleton base class for RequestListeners, providing default error 
+     * handling. Applications should handle these error conditions.
+     *
+     */
+    public abstract class BaseRequestListener implements RequestListener {
+        public void onFacebookError(FacebookError e, final Object state) {
+            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
+        }
+
+        public void onFileNotFoundException(FileNotFoundException e,
+                                            final Object state) {
+            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
+        }
+
+        public void onIOException(IOException e, final Object state) {
+            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
+        }
+
+        public void onMalformedURLException(MalformedURLException e, final Object state) {
+            Log.e(TAG, e.getMessage());
+            e.printStackTrace();
         }
     }
 }

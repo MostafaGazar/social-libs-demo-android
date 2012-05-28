@@ -14,6 +14,7 @@ public class PreferenceHelpers {
 
 	private static SharedPreferences prefs = null;
 
+	@SuppressWarnings("unused")
 	private static void initSharedPreferences(Context context) {
 		initSharedPreferences(context, Context.MODE_PRIVATE);
 	}
@@ -21,7 +22,7 @@ public class PreferenceHelpers {
 	private static void initSharedPreferences(Context context, int mode) {
 		if (prefs == null) {
 			prefs = context.getSharedPreferences(
-					PreferenceConstants.APP_PREFS_NAME, mode);
+					com.mostafaGazar.android.share.util.PreferenceConstants.APP_PREFS_NAME, mode);
 		}
 	}
 

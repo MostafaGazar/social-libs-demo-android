@@ -18,7 +18,7 @@ package com.mostafaGazar.android.share.model;
 
 import java.util.LinkedList;
 
-public class SessionEvents {
+public class FacebookSessionEvents {
 
     private static LinkedList<AuthListener> mAuthListeners = 
         new LinkedList<AuthListener>();

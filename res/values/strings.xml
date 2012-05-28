@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, SocialShareDemoActivity!</string>
-    <string name="app_name">Integrate Social Libs Demo</string>
-    <string name="message_hint">Message</string>
-    <string name="intent_share">Share</string>
-    <string name="twitter_status_updated">Twitter status updated</string>
-    <string name="facebook_wall_updated">Facebook wall updated</string>
+    <string name="app_name">Social Libs Demo</string>
+    
+    <string name="loading_">Loading...</string>
+    
+    <string name="error_occurred">Error occurred</string>
+    
+    <string name="twitter_status">Twitter Message</string>
+    <string name="twitter_status_updated">Twitter: Status updated</string>
+    <string name="twitter_login_message">Would you like to login to your Twitter account?</string>
+    <string name="twitter_login">Login</string>
+    <string name="twitter_login_succesful">Twitter: Login succeeded</string>
+    <string name="twitter_login_failed">Twitter: Login failed</string>
+    <string name="twitter_logout_message">Would you like to logout from your Twitter account?</string>
+    <string name="twitter_logout">Logout</string>
+    <string name="twitter_logout_succesful">Twitter: Logout succeeded</string>
+    
+    <string name="facebook_status">Facebook Post</string>
+    <string name="facebook_status_updated">Facebook: Wall updated</string>
+    <string name="facebook_status_update_failed">Facebook: Error occurred, please try again</string>
+    <string name="facebook_login_message">Would you like to login to your Facebook account?</string>
+    <string name="facebook_login">Login</string>
+    <string name="facebook_login_succesful">Facebook: Login succeeded</string>
+    <string name="facebook_login_failed">Facebook: Login failed</string>
+    <string name="facebook_logout_message">Would you like to logout from your Facebook account?</string>
+    <string name="facebook_logout">Logout</string>
+    <string name="facebook_logout_succesful">Facebook: Logout succeeded</string>
+    
+    <string name="share_intent_title">Share with</string>
 
 </resources>

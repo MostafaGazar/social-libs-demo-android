@@ -12,7 +12,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <activity
-            android:name="com.mostafaGazar.android.share.view.DemoMainActivity"
+            android:name=".view.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,7 +22,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="oauth" android:host="integrate_social_libs_t4j"/>
+                <data android:scheme="oauth" android:host="social_libs_demo_t4j"/>
             </intent-filter>
         </activity>
     </application>
