@@ -1,4 +1,1 @@
-social-libs-demo
-================
-
-Social Libs Demo
+Demo to simple sharing via Facebook and Twitter native APIs.
